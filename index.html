@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GATE CS — COA Interactive PYQ Test Portal</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --panel: #1e293b;
+      --panel-alt: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --green: #10b981;
+      --green-bg: rgba(16, 185, 129, 0.16);
+      --red: #ef4444;
+      --red-bg: rgba(239, 68, 68, 0.16);
+      --amber: #f59e0b;
+      --border: #334155;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, #6366f1, #38bdf8);
+      color: #fff;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+    }
+
+    .brand h1 {
+      font-size: 1.12rem;
+      font-weight: 700;
+    }
+
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .score-card {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(99, 102, 241, 0.18));
+      border: 1px solid var(--accent);
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .score-val {
+      color: #38bdf8;
+      font-size: 1.08rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .stat-pill.correct { color: var(--green); border-color: rgba(16,185,129,0.4); }
+    .stat-pill.wrong { color: var(--red); border-color: rgba(239,68,68,0.4); }
+
+    .timer-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #090d16;
+      border: 2px solid var(--accent);
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1.05rem;
+      font-variant-numeric: tabular-nums;
+      transition: all 0.2s;
+    }
+
+    .timer-box.warning {
+      border-color: var(--amber);
+      color: var(--amber);
+    }
+
+    .timer-box.danger {
+      border-color: var(--red);
+      color: var(--red);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+
+    .btn-small {
+      background: var(--panel-alt);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+
+    .btn-small:hover {
+      background: #475569;
+    }
+
+    .app-container {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+      max-width: 1460px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 20px;
+      flex: 1;
+    }
+
+    @media (max-width: 980px) {
+      .app-container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .pdf-banner {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px dashed var(--accent);
+      border-radius: 12px;
+      padding: 12px 18px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .pdf-banner.loaded {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: var(--green);
+      border-style: solid;
+    }
+
+    .file-label {
+      background: var(--accent);
+      color: #0f172a;
+      font-weight: 700;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.84rem;
+      display: inline-block;
+    }
+
+    .file-label input {
+      display: none;
+    }
+
+    .question-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    }
+
+    .q-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .q-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .q-index-badge {
+      background: var(--accent);
+      color: #0f172a;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    .q-topic-badge {
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+
+    .q-type-badge {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .type-mcq { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+    .type-msq { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+    .type-nat { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .type-tf  { background: rgba(20, 184, 166, 0.2); color: #2dd4bf; }
+    .type-desc { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
+
+    .marking-scheme-pill {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    .pdf-cutout-wrapper {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 14px;
+      overflow-x: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      border: 2px solid #334155;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .pdf-cutout-controls {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f1f5f9;
+      padding: 6px 12px;
+      border-radius: 8px;
+      color: #334155;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .pdf-cutout-wrapper canvas {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 4px;
+    }
+
+    .q-body {
+      font-size: 1.02rem;
+      line-height: 1.65;
+      color: #e2e8f0;
+      white-space: pre-wrap;
+      background: rgba(15, 23, 42, 0.5);
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .options-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .options-list {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .option-btn {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      text-align: left;
+      background: rgba(15, 23, 42, 0.7);
+      border: 2px solid var(--border);
+      color: var(--text);
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-size: 0.98rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .option-btn:hover:not(.locked) {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .option-btn.selected-msq {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.16);
+    }
+
+    .option-letter {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--panel-alt);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .option-btn.correct {
+      border-color: var(--green) !important;
+      background: var(--green-bg) !important;
+      color: #ecfdf5;
+    }
+
+    .option-btn.correct .option-letter {
+      background: var(--green);
+      color: #052e16;
+    }
+
+    .option-btn.wrong {
+      border-color: var(--red) !important;
+      background: var(--red-bg) !important;
+      color: #fef2f2;
+    }
+
+    .option-btn.wrong .option-letter {
+      background: var(--red);
+      color: #fff;
+    }
+
+    .option-text {
+      flex: 1;
+      font-weight: 600;
+    }
+
+    .status-icon {
+      font-weight: 800;
+      font-size: 0.85rem;
+    }
+
+    .nat-box {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .nat-input {
+      background: #090d16;
+      border: 2px solid var(--border);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 1.05rem;
+      width: 240px;
+    }
+
+    .nat-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .action-btn {
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .action-btn:hover {
+      opacity: 0.9;
+    }
+
+    .feedback-banner {
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-weight: 600;
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .feedback-banner.show {
+      display: flex;
+    }
+
+    .feedback-banner.correct {
+      background: var(--green-bg);
+      border: 1px solid var(--green);
+      color: #6ee7b7;
+    }
+
+    .feedback-banner.wrong {
+      background: var(--red-bg);
+      border: 1px solid var(--red);
+      color: #fca5a5;
+    }
+
+    .nav-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      gap: 12px;
+    }
+
+    .nav-btn {
+      background: var(--panel-alt);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 11px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: #475569;
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .sidebar {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      height: fit-content;
+      max-height: calc(100vh - 90px);
+      position: sticky;
+      top: 76px;
+    }
+
+    .scoring-legend {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.78rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      color: var(--muted);
+    }
+
+    .scoring-legend div {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .filter-group label {
+      font-size: 0.76rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    select, .search-input {
+      background: #0f172a;
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      width: 100%;
+    }
+
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+      gap: 7px;
+      overflow-y: auto;
+      padding-right: 4px;
+      max-height: 380px;
+    }
+
+    .palette-item {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 8px 4px;
+      border-radius: 7px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+
+    .palette-item:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .palette-item.active {
+      border: 2px solid var(--accent);
+      color: var(--accent);
+    }
+
+    .palette-item.solved-correct {
+      background: var(--green-bg);
+      border-color: var(--green);
+      color: #6ee7b7;
+    }
+
+    .palette-item.solved-wrong {
+      background: var(--red-bg);
+      border-color: var(--red);
+      color: #fca5a5;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span class="brand-badge">GATE CS</span>
+      <h1>COA Interactive PYQ Test Portal</h1>
+    </div>
+
+    <div class="stats-bar">
+      <div class="score-card" title="MCQ: +1 / -0.33 | MSQ: +2 / 0 | NAT: +2 / 0">
+        <span>🏆 Score:</span>
+        <span class="score-val" id="stat-score">0.00</span>
+        <span style="color:var(--muted); font-size:0.8rem;" id="stat-max-score">/ 0</span>
+      </div>
+
+      <div class="stat-pill correct">✔ <strong id="stat-correct">0</strong></div>
+      <div class="stat-pill wrong">✖ <strong id="stat-wrong">0</strong></div>
+      <div class="stat-pill">Acc: <strong id="stat-acc">0%</strong></div>
+
+      <div class="timer-box" id="timer-box" title="Refreshes to 03:00 on every new question">
+        <span>⏱</span>
+        <span id="timer-display">03:00</span>
+        <button class="btn-small" id="timer-toggle-btn" onclick="toggleTimer()">Pause</button>
+        <button class="btn-small" onclick="resetTimer()">↻</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <main>
+      <div class="pdf-banner" id="pdf-banner">
+        <div>
+          <strong id="pdf-status-title">✂️ PDF Screenshot Cutout Mode:</strong>
+          <span id="pdf-status-desc" style="font-size:0.86rem; color:var(--muted); margin-left:6px;">
+            Auto-loading <code>COA.pdf</code> from repository... (or select it manually)
+          </span>
+        </div>
+        <label class="file-label">
+          Select COA.pdf
+          <input type="file" id="pdf-file-input" accept="application/pdf" />
+        </label>
+      </div>
+
+      <div class="question-card">
+        <div class="q-header">
+          <div class="q-meta">
+            <span class="q-index-badge" id="q-index">2.1.1</span>
+            <span class="q-topic-badge" id="q-topic">2.1 Addressing Modes</span>
+            <span class="q-type-badge type-mcq" id="q-type">MCQ</span>
+            <span class="marking-scheme-pill" id="q-marks-pill">+1.00 / -0.33</span>
+          </div>
+          <div style="font-size:0.84rem; color:var(--muted);" id="q-counter">Question 1 of 215</div>
+        </div>
+
+        <!-- Cropped PDF Question & Diagram Area -->
+        <div class="pdf-cutout-wrapper" id="pdf-slice-wrapper" style="display:none;">
+          <div class="pdf-cutout-controls">
+            <span id="pdf-page-indicator">📄 Cropped from COA.pdf</span>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-small" onclick="adjustCutoutPadding(-35)">Crop Tighter</button>
+              <button class="btn-small" onclick="adjustCutoutPadding(55)">Expand Cutout +</button>
+            </div>
+          </div>
+          <div id="pdf-canvas-Mount" style="width:100%; display:flex; flex-direction:column; align-items:center; gap:8px;"></div>
+        </div>
+
+        <!-- Fallback Text Area -->
+        <div class="q-body" id="q-body"></div>
+
+        <!-- Interactive Answer Controls -->
+        <div id="interactive-area"></div>
+
+        <!-- Result Feedback Banner -->
+        <div class="feedback-banner" id="feedback-banner"></div>
+
+        <div class="nav-row">
+          <button class="nav-btn" id="prev-btn" onclick="prevQuestion()">← Previous</button>
+          <button class="btn-small" onclick="resetCurrentQuestion()">Retry Question</button>
+          <button class="nav-btn" id="next-btn" onclick="nextQuestion()">Next Question →</button>
+        </div>
+      </div>
+    </main>
+
+    <aside class="sidebar">
+      <div class="scoring-legend">
+        <strong style="color:var(--text); margin-bottom:2px;">MARKING SCHEME</strong>
+        <div><span>MCQ (Single Choice):</span> <span style="color:var(--green);">+1.00</span> <span style="color:var(--red);">-1/3 (-0.33)</span></div>
+        <div><span>MSQ (Multiple Select):</span> <span style="color:var(--green);">+2.00</span> <span style="color:var(--muted);">0.00 (No Neg)</span></div>
+        <div><span>NAT (Numerical):</span> <span style="color:var(--green);">+2.00</span> <span style="color:var(--muted);">0.00 (No Neg)</span></div>
+      </div>
+
+      <div class="filter-group">
+        <label>Topic-Wise Filter (20 Topics)</label>
+        <select id="topic-filter" onchange="applyFilters()">
+          <option value="ALL">All 20 COA Topics</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Question Type Filter</label>
+        <select id="type-filter" onchange="applyFilters()">
+          <option value="ALL">All Gradable (MCQ + MSQ + NAT)</option>
+          <option value="MCQ">MCQ Only (+1 / -0.33)</option>
+          <option value="MSQ">MSQ Only (+2 / 0)</option>
+          <option value="NAT">NAT Only (+2 / 0)</option>
+          <option value="WITH_DESC">Include Subjective (N/A)</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Jump to Index (e.g., 2.2.1, 2.17.16)</label>
+        <input type="text" id="search-input" class="search-input" placeholder="Type index like 2.2.1..." oninput="applyFilters()" />
+      </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:0.78rem; color:var(--muted); font-weight:700;">QUESTION PALETTE</span>
+        <button class="btn-small" onclick="clearAllProgress()">Reset Test</button>
+      </div>
+
+      <div class="palette-grid" id="palette-grid"></div>
+    </aside>
+  </div>
+
+<script>
+// ============================================================================
+// 1. COMPLETE OFFICIAL ANSWER KEY MAP (All 238 Questions)
+// ============================================================================
+const OFFICIAL_ANSWERS = {
+  // 2.1 Addressing Modes (18)
+  "2.1.1": "C", "2.1.2": "N/A", "2.1.3": "N/A", "2.1.4": "N/A", "2.1.5": "B",
+  "2.1.6": "D", "2.1.7": "A;B;C;D", "2.1.8": "C", "2.1.9": "A", "2.1.10": "B",
+  "2.1.11": "C", "2.1.12": "B", "2.1.13": "C", "2.1.14": "C", "2.1.15": "D",
+  "2.1.16": "D", "2.1.17": "D", "2.1.18": "D",
+
+  // 2.2 Average Memory Access Time (2)
+  "2.2.1": "11.83:11.87", "2.2.2": "4:4",
+
+  // 2.3 CISC RISC Architecture (2)
+  "2.3.1": "A;B;C;D", "2.3.2": "D",
+
+  // 2.4 Cache Memory (73)
+  "2.4.1": "N/A", "2.4.2": "N/A", "2.4.3": "True", "2.4.4": "22", "2.4.5": "180",
+  "2.4.6": "N/A", "2.4.7": "D", "2.4.8": "D", "2.4.9": "61.25", "2.4.10": "N/A",
+  "2.4.11": "B", "2.4.12": "B", "2.4.13": "N/A", "2.4.14": "N/A", "2.4.15": "C",
+  "2.4.16": "A", "2.4.17": "A", "2.4.18": "D", "2.4.19": "C", "2.4.20": "B",
+  "2.4.21": "D", "2.4.22": "C", "2.4.23": "A", "2.4.24": "A", "2.4.25": "D",
+  "2.4.26": "B", "2.4.27": "C", "2.4.28": "D", "2.4.29": "C", "2.4.30": "C",
+  "2.4.31": "D", "2.4.32": "C", "2.4.33": "A", "2.4.34": "A", "2.4.35": "A",
+  "2.4.36": "D", "2.4.37": "D", "2.4.38": "20", "2.4.39": "1.68", "2.4.40": "14",
+  "2.4.41": "A", "2.4.42": "24", "2.4.43": "30", "2.4.44": "0.05", "2.4.45": "76",
+  "2.4.46": "14", "2.4.47": "A", "2.4.48": "4.7:4.8", "2.4.49": "18", "2.4.50": "B",
+  "2.4.51": "D", "2.4.52": "160", "2.4.53": "13.3:13.5", "2.4.54": "B", "2.4.55": "17:17",
+  "2.4.56": "2:2", "2.4.57": "A", "2.4.58": "A;B;D", "2.4.59": "0.85", "2.4.60": "A;B;D",
+  "2.4.61": "19", "2.4.62": "B;C", "2.4.63": "3", "2.4.64": "A", "2.4.65": "A",
+  "2.4.66": "C", "2.4.67": "B", "2.4.68": "C", "2.4.69": "C", "2.4.70": "A",
+  "2.4.71": "B", "2.4.72": "D", "2.4.73": "A",
+
+  // 2.5 Clock Cycles (1)
+  "2.5.1": "3.0:3.0",
+
+  // 2.6 DMA (9)
+  "2.6.1": "D", "2.6.2": "B", "2.6.3": "A", "2.6.4": "456", "2.6.5": "80000:80000",
+  "2.6.6": "A", "2.6.7": "C", "2.6.8": "C", "2.6.9": "C",
+
+  // 2.7 Data Dependency (2)
+  "2.7.1": "B", "2.7.2": "B",
+
+  // 2.8 Data Path (7)
+  "2.8.1": "N/A", "2.8.2": "D", "2.8.3": "B", "2.8.4": "B", "2.8.5": "28",
+  "2.8.6": "C", "2.8.7": "A;B;C",
+
+  // 2.9 IO Handling (7)
+  "2.9.1": "True", "2.9.2": "True", "2.9.3": "False", "2.9.4": "A", "2.9.5": "1.4:1.5",
+  "2.9.6": "B", "2.9.7": "B",
+
+  // 2.10 Instruction Execution (6)
+  "2.10.1": "False", "2.10.2": "N/A", "2.10.3": "C", "2.10.4": "C", "2.10.5": "A",
+  "2.10.6": "-16.0",
+
+  // 2.11 Instruction Format (9)
+  "2.11.1": "N/A", "2.11.2": "256", "2.11.3": "True", "2.11.4": "16383", "2.11.5": "500",
+  "2.11.6": "32", "2.11.7": "14", "2.11.8": "32", "2.11.9": "34",
+
+  // 2.12 Instruction Set Architecture (1)
+  "2.12.1": "D",
+
+  // 2.13 Interrupts (9)
+  "2.13.1": "D", "2.13.2": "B", "2.13.3": "A", "2.13.4": "A", "2.13.5": "B",
+  "2.13.6": "C", "2.13.7": "C", "2.13.8": "10.2", "2.13.9": "A",
+
+  // 2.14 Machine Instruction (21)
+  "2.14.1": "N/A", "2.14.2": "N/A", "2.14.3": "N/A", "2.14.4": "B", "2.14.5": "A",
+  "2.14.6": "D", "2.14.7": "B", "2.14.8": "C", "2.14.9": "B", "2.14.10": "D",
+  "2.14.11": "A", "2.14.12": "C", "2.14.13": "D", "2.14.14": "D", "2.14.15": "16",
+  "2.14.16": "50:50", "2.14.17": "B", "2.14.18": "B", "2.14.19": "D", "2.14.20": "C",
+  "2.14.21": "A",
+
+  // 2.15 Memory Interfacing (6)
+  "2.15.1": "N/A", "2.15.2": "D", "2.15.3": "31", "2.15.4": "59:60", "2.15.5": "A",
+  "2.15.6": "C",
+
+  // 2.16 Microprogramming (13)
+  "2.16.1": "B", "2.16.2": "N/A", "2.16.3": "C", "2.16.4": "C", "2.16.5": "B",
+  "2.16.6": "D", "2.16.7": "A", "2.16.8": "D", "2.16.9": "A", "2.16.10": "D",
+  "2.16.11": "B", "2.16.12": "D", "2.16.13": "D",
+
+  // 2.17 Pipelining (43)
+  "2.17.1": "15", "2.17.2": "B", "2.17.3": "N/A", "2.17.4": "N/A", "2.17.5": "D",
+  "2.17.6": "D", "2.17.7": "C", "2.17.8": "A", "2.17.9": "C", "2.17.10": "B",
+  "2.17.11": "B", "2.17.12": "A", "2.17.13": "D", "2.17.14": "B", "2.17.15": "B",
+  "2.17.16": "B", "2.17.17": "C", "2.17.18": "B", "2.17.19": "4", "2.17.20": "1.50:1.60",
+  "2.17.21": "C", "2.17.22": "3.2", "2.17.23": "13", "2.17.24": "3", "2.17.25": "33.0:34.0",
+  "2.17.26": "4", "2.17.27": "1.50:1.51", "2.17.28": "219", "2.17.29": "2.15:2.18", "2.17.30": "17160:17160",
+  "2.17.31": "1.87:1.88", "2.17.32": "1.42:1.45", "2.17.33": "2040", "2.17.34": "A;B;C", "2.17.35": "A",
+  "2.17.36": "3", "2.17.37": "260.20:261.20", "2.17.38": "C", "2.17.39": "B", "2.17.40": "C",
+  "2.17.41": "B", "2.17.42": "B", "2.17.43": "C",
+
+  // 2.18 Runtime Environment (2)
+  "2.18.1": "X", "2.18.2": "A",
+
+  // 2.19 Speedup (4)
+  "2.19.1": "1.6", "2.19.2": "3", "2.19.3": "A", "2.19.4": "B",
+
+  // 2.20 Virtual Memory (3)
+  "2.20.1": "A;B", "2.20.2": "D", "2.20.3": "C"
+};
+
+const TOPIC_MAP = {
+  "2.1": "2.1 Addressing Modes",
+  "2.2": "2.2 Average Memory Access Time",
+  "2.3": "2.3 CISC RISC Architecture",
+  "2.4": "2.4 Cache Memory",
+  "2.5": "2.5 Clock Cycles",
+  "2.6": "2.6 DMA",
+  "2.7": "2.7 Data Dependency",
+  "2.8": "2.8 Data Path",
+  "2.9": "2.9 IO Handling",
+  "2.10": "2.10 Instruction Execution",
+  "2.11": "2.11 Instruction Format",
+  "2.12": "2.12 Instruction Set Architecture",
+  "2.13": "2.13 Interrupts",
+  "2.14": "2.14 Machine Instruction",
+  "2.15": "2.15 Memory Interfacing",
+  "2.16": "2.16 Microprogramming",
+  "2.17": "2.17 Pipelining",
+  "2.18": "2.18 Runtime Environment",
+  "2.19": "2.19 Speedup",
+  "2.20": "2.20 Virtual Memory"
+};
+
+// ============================================================================
+// 2. QUESTION CLASSIFICATION & SCORING RULES
+// ============================================================================
+function getQuestionType(ans) {
+  if (!ans || ans === "N/A" || ans === "X") return "DESC";
+  if (ans === "True" || ans === "False") return "TF";
+  if (ans.includes(";")) return "MSQ";
+  if (/^[A-E]$/.test(ans)) return "MCQ";
+  return "NAT";
+}
+
+function getMarksDelta(qType, isCorrect) {
+  if (qType === "MCQ" || qType === "TF") {
+    return isCorrect ? 1 : -(1 / 3);
+  } else if (qType === "MSQ" || qType === "NAT") {
+    return isCorrect ? 2 : 0;
+  }
+  return 0;
+}
+
+function getMaxMarksForType(qType) {
+  if (qType === "MCQ" || qType === "TF") return 1;
+  if (qType === "MSQ" || qType === "NAT") return 2;
+  return 0;
+}
+
+const ALL_QUESTIONS = Object.keys(OFFICIAL_ANSWERS).map(id => {
+  const parts = id.split(".");
+  const topicKey = parts[0] + "." + parts[1];
+  const ans = OFFICIAL_ANSWERS[id];
+  const qType = getQuestionType(ans);
+
+  return {
+    id,
+    topicKey,
+    topicName: TOPIC_MAP[topicKey] || "CO & Architecture",
+    answer: ans,
+    type: qType,
+    title: `COA Question ${id}`,
+    text: `Loading Question ${id} from COA.pdf... (If COA.pdf is not in the same folder, click "Select COA.pdf" above).`,
+    pdfLocation: null,
+    extraPadding: 0
+  };
+});
+
+// ============================================================================
+// 3. STATE, FILTERS & 3-MINUTE TIMER
+// ============================================================================
+let filteredQuestions = [];
+let currentIdx = 0;
+let userProgress = JSON.parse(localStorage.getItem("gate_coa_progress") || "{}");
+let msqSelection = new Set();
+
+let timeRemaining = 180;
+let timerInterval = null;
+let timerPaused = false;
+
+function initApp() {
+  const topicSelect = document.getElementById("topic-filter");
+  Object.entries(TOPIC_MAP).forEach(([key, name]) => {
+    const count = ALL_QUESTIONS.filter(q => q.topicKey === key).length;
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = `${name} (${count})`;
+    topicSelect.appendChild(opt);
+  });
+
+  applyFilters();
+  updateStatsUI();
+  tryAutoLoadPDF();
+}
+
+function applyFilters() {
+  const topicVal = document.getElementById("topic-filter").value;
+  const typeVal = document.getElementById("type-filter").value;
+  const searchVal = document.getElementById("search-input").value.trim().toLowerCase();
+
+  filteredQuestions = ALL_QUESTIONS.filter(q => {
+    if (topicVal !== "ALL" && q.topicKey !== topicVal) return false;
+    if (typeVal === "ALL" && q.type === "DESC") return false;
+    if (typeVal === "MCQ" && q.type !== "MCQ" && q.type !== "TF") return false;
+    if (typeVal === "MSQ" && q.type !== "MSQ") return false;
+    if (typeVal === "NAT" && q.type !== "NAT") return false;
+    if (searchVal) {
+      const hay = `${q.id} ${q.topicName}`.toLowerCase();
+      if (!hay.includes(searchVal)) return false;
+    }
+    return true;
+  });
+
+  if (filteredQuestions.length === 0) {
+    filteredQuestions = ALL_QUESTIONS;
+  }
+
+  currentIdx = 0;
+  renderPalette();
+  loadQuestion(0);
+}
+
+function startFreshTimer() {
+  clearInterval(timerInterval);
+  timeRemaining = 180;
+  timerPaused = false;
+  document.getElementById("timer-toggle-btn").textContent = "Pause";
+  updateTimerDisplay();
+
+  timerInterval = setInterval(() => {
+    if (timerPaused) return;
+    if (timeRemaining > 0) {
+      timeRemaining--;
+      updateTimerDisplay();
+      if (timeRemaining === 0) {
+        handleTimeUp();
+      }
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const mins = String(Math.floor(timeRemaining / 60)).padStart(2, "0");
+  const secs = String(timeRemaining % 60).padStart(2, "0");
+  document.getElementById("timer-display").textContent = `${mins}:${secs}`;
+
+  const box = document.getElementById("timer-box");
+  box.classList.remove("warning", "danger");
+  if (timeRemaining <= 20) box.classList.add("danger");
+  else if (timeRemaining <= 60) box.classList.add("warning");
+}
+
+function toggleTimer() {
+  timerPaused = !timerPaused;
+  document.getElementById("timer-toggle-btn").textContent = timerPaused ? "Resume" : "Pause";
+}
+
+function resetTimer() {
+  startFreshTimer();
+}
+
+function handleTimeUp() {
+  clearInterval(timerInterval);
+  const q = filteredQuestions[currentIdx];
+  const banner = document.getElementById("feedback-banner");
+  if (!userProgress[q.id]) {
+    banner.className = "feedback-banner show wrong";
+    banner.innerHTML = `<span>⏰ Time's up (03:00)! Official Answer: <strong>${q.answer}</strong></span>`;
+  }
+}
+
+// ============================================================================
+// 4. QUESTION RENDERING & INSTANT GREEN/RED CHECKING
+// ============================================================================
+function loadQuestion(idx) {
+  currentIdx = idx;
+  msqSelection.clear();
+  startFreshTimer();
+
+  const q = filteredQuestions[currentIdx];
+  document.getElementById("q-index").textContent = q.id;
+  document.getElementById("q-topic").textContent = q.topicName;
+  document.getElementById("q-counter").textContent = `Question ${currentIdx + 1} of ${filteredQuestions.length}`;
+
+  const typeBadge = document.getElementById("q-type");
+  typeBadge.textContent = q.type;
+  typeBadge.className = `q-type-badge type-${q.type.toLowerCase()}`;
+
+  const marksPill = document.getElementById("q-marks-pill");
+  if (q.type === "MCQ" || q.type === "TF") {
+    marksPill.textContent = "+1.00 / -0.33";
+  } else if (q.type === "MSQ" || q.type === "NAT") {
+    marksPill.textContent = "+2.00 / 0.00";
+  } else {
+    marksPill.textContent = "Unscored";
+  }
+
+  const sliceWrapper = document.getElementById("pdf-slice-wrapper");
+  const qBody = document.getElementById("q-body");
+
+  if (pdfDoc && q.pdfLocation) {
+    sliceWrapper.style.display = "flex";
+    qBody.style.display = "none";
+    renderPDFQuestionSlice(q);
+  } else {
+    sliceWrapper.style.display = "none";
+    qBody.style.display = "block";
+    qBody.textContent = `${q.title}\n\n${q.text}`;
+  }
+
+  const area = document.getElementById("interactive-area");
+  area.innerHTML = "";
+
+  const saved = userProgress[q.id];
+  const banner = document.getElementById("feedback-banner");
+  banner.className = "feedback-banner";
+  banner.innerHTML = "";
+
+  if (q.type === "MCQ") {
+    const list = document.createElement("div");
+    list.className = "options-list";
+    ["A", "B", "C", "D"].forEach(letter => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.dataset.opt = letter;
+      btn.innerHTML = `
+        <span class="option-letter">${letter}</span>
+        <span class="option-text">Option ${letter}</span>
+        <span class="status-icon"></span>
+      `;
+      btn.onclick = () => selectMCQOption(q, letter);
+      list.appendChild(btn);
+    });
+    area.appendChild(list);
+    if (saved) applyMCQVisualState(q, saved.userAns);
+
+  } else if (q.type === "TF") {
+    const list = document.createElement("div");
+    list.className = "options-list";
+    ["True", "False"].forEach(val => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.dataset.opt = val;
+      btn.innerHTML = `
+        <span class="option-letter">${val[0]}</span>
+        <span class="option-text">${val}</span>
+        <span class="status-icon"></span>
+      `;
+      btn.onclick = () => selectMCQOption(q, val);
+      list.appendChild(btn);
+    });
+    area.appendChild(list);
+    if (saved) applyMCQVisualState(q, saved.userAns);
+
+  } else if (q.type === "MSQ") {
+    const list = document.createElement("div");
+    list.className = "options-list";
+    const letters = q.answer.includes("E") ? ["A", "B", "C", "D", "E"] : ["A", "B", "C", "D"];
+
+    letters.forEach(letter => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      btn.dataset.opt = letter;
+      btn.innerHTML = `
+        <span class="option-letter">${letter}</span>
+        <span class="option-text">Option ${letter} (Multi-Select)</span>
+        <span class="status-icon"></span>
+      `;
+      btn.onclick = () => toggleMSQOption(q, letter, btn);
+      list.appendChild(btn);
+    });
+    area.appendChild(list);
+
+    const submitBtn = document.createElement("button");
+    submitBtn.className = "action-btn";
+    submitBtn.style.marginTop = "12px";
+    submitBtn.textContent = "Submit MSQ Answer (+2 / 0)";
+    submitBtn.onclick = () => checkMSQAnswer(q);
+    area.appendChild(submitBtn);
+
+    if (saved) {
+      saved.userAns.split(";").forEach(k => msqSelection.add(k));
+      applyMSQVisualState(q, saved.userAns);
+    }
+
+  } else if (q.type === "NAT") {
+    const box = document.createElement("div");
+    box.className = "nat-box";
+    box.innerHTML = `
+      <input type="number" step="any" class="nat-input" id="nat-input" placeholder="Enter numerical value..." value="${saved ? saved.userAns : ''}" />
+      <button class="action-btn" onclick="checkNATAnswer()">Submit NAT (+2 / 0)</button>
+    `;
+    area.appendChild(box);
+    if (saved) showNATFeedback(q, saved.userAns, saved.isCorrect);
+  } else {
+    area.innerHTML = `<div style="color:var(--muted);">Descriptive / Subjective Question (Official Key: ${q.answer})</div>`;
+  }
+
+  document.getElementById("prev-btn").disabled = currentIdx === 0;
+  document.getElementById("next-btn").disabled = currentIdx === filteredQuestions.length - 1;
+  highlightPaletteActive();
+}
+
+function selectMCQOption(q, chosenVal) {
+  if (userProgress[q.id]) return;
+  const isCorrect = chosenVal === q.answer;
+  userProgress[q.id] = { userAns: chosenVal, isCorrect, type: q.type };
+  saveProgress();
+  applyMCQVisualState(q, chosenVal);
+}
+
+function applyMCQVisualState(q, chosenVal) {
+  const isCorrect = chosenVal === q.answer;
+  document.querySelectorAll(".option-btn").forEach(btn => {
+    btn.classList.add("locked");
+    const opt = btn.dataset.opt;
+    const icon = btn.querySelector(".status-icon");
+
+    if (opt === q.answer) {
+      btn.classList.add("correct");
+      icon.textContent = "✔ Correct";
+    } else if (opt === chosenVal && !isCorrect) {
+      btn.classList.add("wrong");
+      icon.textContent = "✖ Your Choice";
+    }
+  });
+
+  const banner = document.getElementById("feedback-banner");
+  if (isCorrect) {
+    banner.className = "feedback-banner show correct";
+    banner.innerHTML = `<span>✔ Correct! Option <strong>${q.answer}</strong></span><span><strong>+1.00 Mark</strong></span>`;
+  } else {
+    banner.className = "feedback-banner show wrong";
+    banner.innerHTML = `<span>✖ Wrong! You chose <strong>${chosenVal}</strong> — Correct is <strong>${q.answer}</strong></span><span><strong>-0.33 Mark (-1/3)</strong></span>`;
+  }
+}
+
+function toggleMSQOption(q, letter, btn) {
+  if (userProgress[q.id]) return;
+  if (msqSelection.has(letter)) {
+    msqSelection.delete(letter);
+    btn.classList.remove("selected-msq");
+  } else {
+    msqSelection.add(letter);
+    btn.classList.add("selected-msq");
+  }
+}
+
+function checkMSQAnswer(q) {
+  if (userProgress[q.id] || msqSelection.size === 0) return;
+  const userStr = Array.from(msqSelection).sort().join(";");
+  const correctStr = q.answer.split(";").map(s => s.trim()).sort().join(";");
+  const isCorrect = userStr === correctStr;
+
+  userProgress[q.id] = { userAns: userStr, isCorrect, type: q.type };
+  saveProgress();
+  applyMSQVisualState(q, userStr);
+}
+
+function applyMSQVisualState(q, userStr) {
+  const userSet = new Set(userStr.split(";"));
+  const correctSet = new Set(q.answer.split(";").map(s => s.trim()));
+  const isCorrect = userProgress[q.id]?.isCorrect;
+
+  document.querySelectorAll(".option-btn").forEach(btn => {
+    btn.classList.add("locked");
+    const letter = btn.dataset.opt;
+    const icon = btn.querySelector(".status-icon");
+
+    if (correctSet.has(letter)) {
+      btn.classList.add("correct");
+      icon.textContent = userSet.has(letter) ? "✔ Correct" : "✔ Missed";
+    } else if (userSet.has(letter)) {
+      btn.classList.add("wrong");
+      icon.textContent = "✖ Wrong";
+    }
+  });
+
+  const banner = document.getElementById("feedback-banner");
+  if (isCorrect) {
+    banner.className = "feedback-banner show correct";
+    banner.innerHTML = `<span>✔ All correct options (<strong>${q.answer}</strong>) selected!</span><span><strong>+2.00 Marks</strong></span>`;
+  } else {
+    banner.className = "feedback-banner show wrong";
+    banner.innerHTML = `<span>✖ Incorrect. Correct Options: <strong>${q.answer}</strong> (You selected: ${userStr})</span><span><strong>0.00 Marks (No Negative)</strong></span>`;
+  }
+}
+
+function checkNATAnswer() {
+  const q = filteredQuestions[currentIdx];
+  if (userProgress[q.id]) return;
+  const inputEl = document.getElementById("nat-input");
+  const valStr = inputEl.value.trim();
+  if (!valStr) return;
+
+  const num = parseFloat(valStr);
+  let isCorrect = false;
+
+  if (q.answer.includes(":")) {
+    const [minStr, maxStr] = q.answer.split(":");
+    isCorrect = num >= parseFloat(minStr) && num <= parseFloat(maxStr);
+  } else {
+    isCorrect = Math.abs(num - parseFloat(q.answer)) <= 0.01;
+  }
+
+  userProgress[q.id] = { userAns: valStr, isCorrect, type: q.type };
+  saveProgress();
+  showNATFeedback(q, valStr, isCorrect);
+}
+
+function showNATFeedback(q, valStr, isCorrect) {
+  const inputEl = document.getElementById("nat-input");
+  const banner = document.getElementById("feedback-banner");
+  if (inputEl) {
+    inputEl.style.borderColor = isCorrect ? "var(--green)" : "var(--red)";
+    inputEl.style.backgroundColor = isCorrect ? "var(--green-bg)" : "var(--red-bg)";
+  }
+
+  if (isCorrect) {
+    banner.className = "feedback-banner show correct";
+    banner.innerHTML = `<span>✔ Correct! Your answer <strong>${valStr}</strong> matches official key (<strong>${q.answer}</strong>)</span><span><strong>+2.00 Marks</strong></span>`;
+  } else {
+    banner.className = "feedback-banner show wrong";
+    banner.innerHTML = `<span>✖ Wrong! Your answer: <strong>${valStr}</strong> | Official Key: <strong>${q.answer}</strong></span><span><strong>0.00 Marks (No Negative)</strong></span>`;
+  }
+}
+
+function resetCurrentQuestion() {
+  const q = filteredQuestions[currentIdx];
+  delete userProgress[q.id];
+  saveProgress();
+  loadQuestion(currentIdx);
+}
+
+function prevQuestion() {
+  if (currentIdx > 0) loadQuestion(currentIdx - 1);
+}
+
+function nextQuestion() {
+  if (currentIdx < filteredQuestions.length - 1) loadQuestion(currentIdx + 1);
+}
+
+// ============================================================================
+// 5. SCORING & PALETTE UPDATES
+// ============================================================================
+function updateStatsUI() {
+  let rawScore = 0;
+  let maxAttemptedMarks = 0;
+  let correctCount = 0;
+  let wrongCount = 0;
+
+  Object.entries(userProgress).forEach(([qId, record]) => {
+    const qObj = ALL_QUESTIONS.find(x => x.id === qId);
+    const qType = record.type || (qObj ? qObj.type : "MCQ");
+
+    rawScore += getMarksDelta(qType, record.isCorrect);
+    maxAttemptedMarks += getMaxMarksForType(qType);
+
+    if (record.isCorrect) correctCount++;
+    else wrongCount++;
+  });
+
+  const totalAttempted = correctCount + wrongCount;
+  const acc = totalAttempted > 0 ? Math.round((correctCount / totalAttempted) * 100) : 0;
+
+  document.getElementById("stat-score").textContent = rawScore.toFixed(2);
+  document.getElementById("stat-max-score").textContent = `/ ${maxAttemptedMarks}`;
+  document.getElementById("stat-correct").textContent = correctCount;
+  document.getElementById("stat-wrong").textContent = wrongCount;
+  document.getElementById("stat-acc").textContent = `${acc}%`;
+}
+
+function renderPalette() {
+  const grid = document.getElementById("palette-grid");
+  grid.innerHTML = "";
+
+  filteredQuestions.forEach((q, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "palette-item";
+    btn.id = `pal-${idx}`;
+    btn.textContent = q.id;
+    const prog = userProgress[q.id];
+    if (prog) {
+      btn.classList.add(prog.isCorrect ? "solved-correct" : "solved-wrong");
+    }
+    btn.onclick = () => loadQuestion(idx);
+    grid.appendChild(btn);
+  });
+}
+
+function highlightPaletteActive() {
+  document.querySelectorAll(".palette-item").forEach(el => el.classList.remove("active"));
+  const curr = document.getElementById(`pal-${currentIdx}`);
+  if (curr) {
+    curr.classList.add("active");
+    const q = filteredQuestions[currentIdx];
+    const prog = userProgress[q.id];
+    curr.classList.remove("solved-correct", "solved-wrong");
+    if (prog) {
+      curr.classList.add(prog.isCorrect ? "solved-correct" : "solved-wrong");
+    }
+  }
+}
+
+function saveProgress() {
+  localStorage.setItem("gate_coa_progress", JSON.stringify(userProgress));
+  updateStatsUI();
+  highlightPaletteActive();
+}
+
+function clearAllProgress() {
+  if (confirm("Reset all solved questions and reset your COA score to 0.00?")) {
+    userProgress = {};
+    saveProgress();
+    renderPalette();
+    loadQuestion(currentIdx);
+  }
+}
+
+// ============================================================================
+// 6. FIXED PDF.JS CUTOUT ENGINE (Stops before Answer Keys & Never Overwrites)
+// ============================================================================
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+let pdfDoc = null;
+
+async function tryAutoLoadPDF() {
+  const candidates = ["./COA.pdf", "./coa.pdf"];
+  for (const url of candidates) {
+    try {
+      const resp = await fetch(url);
+      if (resp.ok) {
+        const buf = await resp.arrayBuffer();
+        await parseLoadedPDF(buf);
+        return;
+      }
+    } catch (e) {
+      // Fallback to manual file upload if opened via file://
+    }
+  }
+}
+
+document.getElementById("pdf-file-input").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const buf = await file.arrayBuffer();
+  await parseLoadedPDF(buf);
+});
+
+async function parseLoadedPDF(arrayBuffer) {
+  const statusTitle = document.getElementById("pdf-status-title");
+  const statusDesc = document.getElementById("pdf-status-desc");
+  statusTitle.textContent = "⏳ Indexing COA.pdf Questions & Diagrams...";
+  statusDesc.textContent = "Mapping question pages (1–60) and excluding Answer Keys table...";
+
+  pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const markers = [];
+  const answerKeyLinks = [];
+  const seenQuestionIds = new Set();
+
+  let stopScanning = false;
+
+  for (let p = 1; p <= pdfDoc.numPages; p++) {
+    if (stopScanning) break;
+
+    const page = await pdfDoc.getPage(p);
+    const viewport = page.getViewport({ scale: 1.0 });
+    const textContent = await page.getTextContent();
+
+    for (const item of textContent.items) {
+      const str = item.str.trim();
+      if (!str) continue;
+
+      // Convert PDF coordinates to exact top-down viewport coordinates
+      const [vx, vy] = viewport.convertToViewportPoint(item.transform[4], item.transform[5]);
+
+      // CRITICAL FIX 1: Stop immediately when the "Answer Keys" table header is reached (Page 61)
+      if (str === "Answer Keys" || str.startsWith("Answer Keys")) {
+        stopScanning = true;
+        break;
+      }
+
+      // CRITICAL FIX 2: Only match question headers at the left margin (vx < 180)
+      // and NEVER overwrite an already-recorded question ID!
+      const match = str.match(/^(2\.\d+\.\d+)\b/);
+      if (match && OFFICIAL_ANSWERS[match[1]] && vx < 180 && !seenQuestionIds.has(match[1])) {
+        seenQuestionIds.add(match[1]);
+        markers.push({
+          id: match[1],
+          page: p,
+          yTop: Math.max(0, vy - 16),
+          pageHeight: viewport.height
+        });
+      }
+
+      // Record "Answer key" link at the bottom of each question to crop cleanly above it
+      if (str === "Answer key" || str.startsWith("Answer key")) {
+        answerKeyLinks.push({
+          page: p,
+          yTop: vy
+        });
+      }
+    }
+  }
+
+  // Assign exact start & end crop coordinates for each question
+  for (let i = 0; i < markers.length; i++) {
+    const curr = markers[i];
+    const next = markers[i + 1];
+    const qObj = ALL_QUESTIONS.find(q => q.id === curr.id);
+    if (!qObj) continue;
+
+    // Find the "Answer key" link that terminates this specific question
+    const ansLink = answerKeyLinks.find(a => {
+      const afterCurr = (a.page > curr.page) || (a.page === curr.page && a.yTop > curr.yTop + 15);
+      const beforeNext = !next || (a.page < next.page) || (a.page === next.page && a.yTop < next.yTop);
+      return afterCurr && beforeNext;
+    });
+
+    if (ansLink && ansLink.page === curr.page) {
+      // Question starts and finishes on the same page
+      qObj.pdfLocation = [{
+        page: curr.page,
+        yStart: curr.yTop,
+        yEnd: Math.max(curr.yTop + 55, ansLink.yTop - 22)
+      }];
+    } else if (next && next.page === curr.page) {
+      qObj.pdfLocation = [{
+        page: curr.page,
+        yStart: curr.yTop,
+        yEnd: Math.max(curr.yTop + 55, next.yTop - 12)
+      }];
+    } else if (next && next.page > curr.page) {
+      // Question spans across a page break
+      qObj.pdfLocation = [
+        { page: curr.page, yStart: curr.yTop, yEnd: curr.pageHeight - 35 }
+      ];
+      const endPage = ansLink ? ansLink.page : next.page;
+      const stopY = ansLink ? (ansLink.yTop - 22) : (next.yTop - 12);
+      if (endPage > curr.page && stopY > 45) {
+        qObj.pdfLocation.push({ page: endPage, yStart: 32, yEnd: stopY });
+      }
+    } else {
+      const stopY = (ansLink && ansLink.page === curr.page) ? (ansLink.yTop - 22) : (curr.pageHeight - 35);
+      qObj.pdfLocation = [{ page: curr.page, yStart: curr.yTop, yEnd: stopY }];
+    }
+  }
+
+  const banner = document.getElementById("pdf-banner");
+  banner.classList.add("loaded");
+  statusTitle.textContent = `✅ COA.pdf Active (${markers.length} Questions Cropped, Answer Keys Excluded)`;
+  statusDesc.textContent = "Showing exact question text, tables, and diagrams from Pages 1–60.";
+
+  loadQuestion(currentIdx);
+}
+
+function adjustCutoutPadding(delta) {
+  const q = filteredQuestions[currentIdx];
+  if (!q || !q.pdfLocation) return;
+  q.extraPadding = (q.extraPadding || 0) + delta;
+  renderPDFQuestionSlice(q);
+}
+
+async function renderPDFQuestionSlice(q) {
+  const mount = document.getElementById("pdf-canvas-Mount");
+  mount.innerHTML = "";
+  const scale = 2.0;
+
+  const pagesList = q.pdfLocation.map(s => s.page).join(", ");
+  document.getElementById("pdf-page-indicator").textContent = `📄 Cropped from COA.pdf (Page ${pagesList}) — Question ${q.id}`;
+
+  for (let idx = 0; idx < q.pdfLocation.length; idx++) {
+    const slice = q.pdfLocation[idx];
+    const page = await pdfDoc.getPage(slice.page);
+    const viewport = page.getViewport({ scale });
+
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = viewport.width;
+    tempCanvas.height = viewport.height;
+    const tempCtx = tempCanvas.getContext("2d");
+
+    await page.render({ canvasContext: tempCtx, viewport }).promise;
+
+    const pad = (idx === q.pdfLocation.length - 1) ? (q.extraPadding || 0) : 0;
+    const cropY = Math.max(0, slice.yStart * scale);
+    const rawHeight = (slice.yEnd - slice.yStart + pad) * scale;
+    const cropHeight = Math.min(viewport.height - cropY, Math.max(70, rawHeight));
+
+    const finalCanvas = document.createElement("canvas");
+    finalCanvas.width = viewport.width;
+    finalCanvas.height = cropHeight;
+    const finalCtx = finalCanvas.getContext("2d");
+
+    finalCtx.drawImage(
+      tempCanvas,
+      0, cropY, viewport.width, cropHeight,
+      0, 0, viewport.width, cropHeight
+    );
+
+    mount.appendChild(finalCanvas);
+  }
+}
+
+window.addEventListener("keydown", (e) => {
+  if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+  const key = e.key.toUpperCase();
+  const q = filteredQuestions[currentIdx];
+
+  if (q && q.type === "MCQ" && ["A", "B", "C", "D"].includes(key)) {
+    selectMCQOption(q, key);
+  } else if (e.key === "ArrowRight") {
+    nextQuestion();
+  } else if (e.key === "ArrowLeft") {
+    prevQuestion();
+  }
+});
+
+initApp();
+</script>
+</body>
+</html>
